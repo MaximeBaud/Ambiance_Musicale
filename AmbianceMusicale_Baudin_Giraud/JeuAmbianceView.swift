@@ -5,6 +5,7 @@
 //  Created by Maxime Baudin on 09/01/2021.
 //
 
+
 import SwiftUI
 import Firebase
 import FirebaseFirestore
@@ -168,6 +169,8 @@ struct AfficheJeu: View {
     var color = ["Bleu", "Rouge", "Vert", "Jaune"]
     @State private var selectedCol = 0
     @State private var showingDeleteAlert = false
+    @State private var addr = ""
+    @State private var newAdrr = ""
     
     var body: some View{
         
@@ -280,7 +283,17 @@ struct AfficheJeu: View {
                 .padding(.top, 25)
              
                 Button(action: {
-
+                    addr = getWiFiAddress()!
+                    if addr != "" {
+                        addr.removeLast()
+                        addr.removeLast()
+                        print(addr)
+                        newAdrr = addr + String("1")
+                        print(newAdrr)
+                    
+                    } else {
+                       print("No WiFi address")
+                    }
                     activateJeu()
                 }) {
                     
@@ -326,65 +339,14 @@ struct AfficheJeu: View {
     }
     
     func activateJeu(){
-        guard let url = URL(string: "http://192.168.4.1") else {
-                    print("Error: cannot create URL")
-                    return
-                }
-                
-                // Create model
-                struct UploadData: Codable {
-                    let name: String
-                    let color: String
-                }
-                
-                // Add data to the model
-        let uploadDataModel = UploadData(name: self.titleAmbient, color: self.color[selectedCol])
-                
-                // Convert model to JSON data
-                guard let jsonData = try? JSONEncoder().encode(uploadDataModel) else {
-                    print("Error: Trying to convert model to JSON data")
-                    return
-                }
-                // Create the url request
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type") // the request is JSON
-                request.setValue("application/json", forHTTPHeaderField: "Accept") // the response expected to be in JSON format
-                request.httpBody = jsonData
-                URLSession.shared.dataTask(with: request) { data, response, error in
-                    guard error == nil else {
-                        print("Error: error calling POST")
-                        print(error!)
-                        return
-                    }
-                    guard let data = data else {
-                        print("Error: Did not receive data")
-                        return
-                    }
-                    guard let response = response as? HTTPURLResponse, (200 ..< 299) ~= response.statusCode else {
-                        print("Error: HTTP request failed")
-                        return
-                    }
-                    do {
-                        guard let jsonObject = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                            print("Error: Cannot convert data to JSON object")
-                            return
-                        }
-                        guard let prettyJsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: .prettyPrinted) else {
-                            print("Error: Cannot convert JSON object to Pretty JSON data")
-                            return
-                        }
-                        guard let prettyPrintedJson = String(data: prettyJsonData, encoding: .utf8) else {
-                            print("Error: Couldn't print JSON in String")
-                            return
-                        }
-                        
-                        print(prettyPrintedJson)
-                    } catch {
-                        print("Error: Trying to convert JSON data to string")
-                        return
-                    }
-                }.resume()
+        let url = URL(string: "http://" + newAdrr)!
+
+        let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+            guard let data = data else { return }
+            print(String(data: data, encoding: .utf8)!)
+        }
+
+        task.resume()
     }
     
     func retourMenu(){
@@ -392,4 +354,38 @@ struct AfficheJeu: View {
         afficheMenu = true
     }
     
+    func getWiFiAddress() -> String? {
+        var address : String?
+
+        // Get list of all interfaces on the local machine:
+        var ifaddr : UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddr) == 0 else { return nil }
+        guard let firstAddr = ifaddr else { return nil }
+
+        // For each interface ...
+        for ifptr in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
+            let interface = ifptr.pointee
+
+            // Check for IPv4 or IPv6 interface:
+            let addrFamily = interface.ifa_addr.pointee.sa_family
+            //if addrFamily == UInt8(AF_INET) || addrFamily == UInt8(AF_INET6) {  // **ipv6 committed
+            if addrFamily == UInt8(AF_INET){
+
+                // Check interface name:
+                let name = String(cString: interface.ifa_name)
+                if  name == "en0" {
+
+                    // Convert interface address to a human readable string:
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
+                                &hostname, socklen_t(hostname.count),
+                                nil, socklen_t(0), NI_NUMERICHOST)
+                    address = String(cString: hostname)
+                }
+            }
+        }
+        freeifaddrs(ifaddr)
+
+        return address
+    }
 }
