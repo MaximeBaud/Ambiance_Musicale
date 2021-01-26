@@ -67,9 +67,15 @@ class observer : ObservableObject{
             
             for i in snap!.documents{
                 
-                let ambianceData = datatype(id: i.documentID, titre: i.get("titre")as! String, couleur: i.get("couleur")as! String)
+                if (i.get("proprietaire") != nil){
+                    let ambianceData = datatype(id: i.documentID, titre: i.get("titre")as! String, couleur: i.get("couleur")as! String, proprietaire: i.get("proprietaire") as! String)
+                    
+                    self.data.append(ambianceData)
+                } else {
+                    let ambianceData = datatype(id: i.documentID, titre: i.get("titre")as! String, couleur: i.get("couleur")as! String, proprietaire: "test")
+                    self.data.append(ambianceData)
+                }
                 
-                self.data.append(ambianceData)
             }
         }
     }
@@ -80,6 +86,7 @@ struct datatype : Identifiable {
     var id : String
     var titre : String
     var couleur : String
+    var proprietaire : String
 }
 
 struct ScreenBase : View {
@@ -101,19 +108,18 @@ struct ScreenBase : View {
                     
                     ForEach(datas.data){i in
                         
-                        /**Text(i.titre)
-                        NavigationLink(destination: JeuAmbianceView()) {
-                                            Text("Show Detail View")
-                                        }**/
-                        Button(action: {
-                            self.montreScreenWithValue(title: i.titre,color: i.couleur,id: i.id)
-                        }) {
-                            
-                            Text(i.titre)
-                                .foregroundColor(.white)
-                                .padding(.vertical)
-                                .frame(width: UIScreen.main.bounds.width - 50)
+                        if (i.proprietaire == "all" || i.proprietaire == Auth.auth().currentUser?.email) {
+                            Button(action: {
+                                self.montreScreenWithValue(title: i.titre,color: i.couleur,id: i.id)
+                            }) {
+                                
+                                Text(i.titre)
+                                    .foregroundColor(.white)
+                                    .padding(.vertical)
+                                    .frame(width: UIScreen.main.bounds.width - 50)
+                            }
                         }
+                        
                     }
                 }
                 .navigationTitle("Votre Liste")
@@ -137,6 +143,7 @@ struct ScreenBase : View {
             VStack{
                 
                 Button(action: {
+                    
                     
                     try! Auth.auth().signOut()
                     UserDefaults.standard.set(false, forKey: "status")
