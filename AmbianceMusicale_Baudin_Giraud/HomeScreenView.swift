@@ -126,7 +126,68 @@ struct ScreenBase : View {
                 .foregroundColor(.white)
             }
             .navigationBarTitle("Votre liste")
+                
+                HStack{
+                    Button(action: {
+                            self.chillMode()
+                        }) {
+                            
+                            Text("Chill Mode")
+                                .foregroundColor(.black)
+                                .padding(.vertical)
+                                .frame(width: UIScreen.main.bounds.width - 200)
+                        }
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .padding(.top, 5)
+                    
+                    
+                    Button(action: {
+                            self.ambianceMode()
+                        }) {
+                            
+                            Text("Ambiance !")
+                                .foregroundColor(.black)
+                                .padding(.vertical)
+                                .frame(width: UIScreen.main.bounds.width - 200)
+                        }
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .padding(.top, 5)
+                
+                }
             
+        HStack{
+            Button(action: {
+                    self.lightOn()
+                }) {
+                    
+                    Text("ON")
+                        .foregroundColor(.black)
+                        .padding(.vertical)
+                        .frame(width: UIScreen.main.bounds.width - 200)
+                }
+                .background(Color.white)
+                .cornerRadius(10)
+                .padding(.top, 5)
+            
+            
+            Button(action: {
+                    self.lightOff()
+                }) {
+                    
+                    Text("OFF")
+                        .foregroundColor(.black)
+                        .padding(.vertical)
+                        .frame(width: UIScreen.main.bounds.width - 200)
+                }
+                .background(Color.white)
+                .cornerRadius(10)
+                .padding(.top, 5)
+        
+        }
+            
+                
             Button(action: {
                 self.montreScreen()
             }) {
@@ -139,6 +200,7 @@ struct ScreenBase : View {
             .background(Color.white)
             .cornerRadius(10)
             .padding(.top, 5)
+                
             
             VStack{
                 
@@ -174,6 +236,58 @@ struct ScreenBase : View {
     func montreScreen(){
         
         afficheJeu = true
+    }
+    
+    func lightOn(){
+        
+        let url = URL(string: "http://192.168.4.1/on")!
+
+        let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+            guard let data = data else { return }
+            print(String(data: data, encoding: .utf8)!)
+        }
+
+        task.resume()
+
+    }
+    
+    func chillMode(){
+    
+    let url = URL(string: "http://192.168.4.1/chillMode")!
+
+    let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+        guard let data = data else { return }
+        print(String(data: data, encoding: .utf8)!)
+    }
+
+    task.resume()
+
+    }
+    
+    
+    func ambianceMode(){
+    
+    let url = URL(string: "http://192.168.4.1/ambianceMode")!
+
+    let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+        guard let data = data else { return }
+        print(String(data: data, encoding: .utf8)!)
+    }
+
+    task.resume()
+
+    }
+    
+    func lightOff(){
+        
+        let url = URL(string: "http://192.168.4.1/off")!
+
+        let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+            guard let data = data else { return }
+            print(String(data: data, encoding: .utf8)!)
+        }
+
+        task.resume()
     }
     
     func montreScreenWithValue(title: String, color: String, id: String){

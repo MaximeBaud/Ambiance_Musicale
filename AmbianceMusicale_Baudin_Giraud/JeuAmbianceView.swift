@@ -67,7 +67,7 @@ struct CreerJeu: View {
     @State var titleAmbient = ""
     @State private var selectedColor = Color.red
     @Binding var afficheMenu: Bool
-    var color = ["Bleu", "Rouge", "Vert", "Jaune", "Orange", "Violet", "Feu", "Chill"]
+    var color = ["Bleu", "Rouge", "Vert", "Jaune"]
     @State private var selectedCol = 0
     
     var body: some View{
@@ -283,9 +283,9 @@ struct AfficheJeu: View {
                 .padding(.top, 25)
              
                 Button(action: {
-                    addr = getWiFiAddress()!
+                    /**addr = getWiFiAddress()!
                     if addr != "" {
-                        addr.removeLast()
+                        print(addr)
                         addr.removeLast()
                         print(addr)
                         newAdrr = addr + String("1")
@@ -293,7 +293,7 @@ struct AfficheJeu: View {
                     
                     } else {
                        print("No WiFi address")
-                    }
+                    }*/
                     activateJeu()
                 }) {
                     
@@ -339,15 +339,16 @@ struct AfficheJeu: View {
     }
     
     func activateJeu(){
-        let url = URL(string: "http://" + newAdrr)!
+        let url = URL(string: "http://192.168.4.1/color/" + self.colorJeu)!
 
-        let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
-            guard let data = data else { return }
-            print(String(data: data, encoding: .utf8)!)
-        }
-
-        task.resume()
+            let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+                guard let data = data else { return }
+                print(String(data: data, encoding: .utf8)!)
+            }
+            
+            task.resume()
     }
+    
     
     func retourMenu(){
         
